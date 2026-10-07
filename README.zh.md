@@ -23,14 +23,34 @@ GitHub 只能通过本地代理客户端访问。代理没进环境变量时，�
 
 ## 安装
 
-插件是一个标准 DSH bundle。可以从 Harness GUI、`plugin_manager` 工具或命令行装：
+在 DeepSeek Harness 应用里打开 **Plugins**，选 **Add plugin**，填入本目录的绝对路径。用
+`plugin_manager` 工具做同一件事：
 
-```bash
-dsh plugin --profile <profile> add /absolute/path/to/dsh-vcpkg
+```
+plugin_manager   action "install_bundle"   target "/absolute/path/to/dsh-vcpkg"
 ```
 
-DSH 会把依赖写进 profile 的 `package.json`，并把 `dsh-vcpkg` 追加到 `dsh.profile.bundles`，从而把
-`cordis.patch.yml` 挂成新的一层。
+两种方式都会把依赖写进当前活动 profile 的 `package.json`，并把 `dsh-vcpkg` 追加到 `dsh.profile.bundles`，
+从而把 `cordis.patch.yml` 挂成新的一层。
+
+### 关于 profile
+
+桌面应用只拥有一个 profile，并且不把它暴露给命令行：
+
+```
+$ dsh --profile desktop --dump-config
+error: profile "desktop" is managed exclusively by the Electron application
+```
+
+所以进入那个 profile 的方式是应用自己的界面，或者 `plugin_manager` 工具。命令行管的是那批由出厂模板
+初始化的 profile，headless 与自动化运行用的就是它们：
+
+```bash
+dsh plugin --profile web add /absolute/path/to/dsh-vcpkg
+```
+
+出厂模板有五个：`web`、`headless`、`sdk`、`sdk-minimal`、`acp`。其它名字会用 `@deepseek-ai/dsh-base`
+单独初始化。
 
 插件把 `@deepseek-ai/dsh-tools` 声明为范围 `>=0.2.0-rc.2 <1.0.0` 的 peer 依赖。超出该范围的 DSH 构建会
 静默跳过整个 bundle，所以要放宽范围请有意为之。
@@ -165,7 +185,8 @@ node --test tests/smoke.mjs
 ### 热重载
 
 DSH 的 HMR watcher 启动时监听根列表是空的，所以插件源码的改动默认到不了正在运行的 Harness。想免去每次重启，
-在 profile 的 `cordis.patch.yml` 里把 watcher 指到插件目录：
+在 profile 自己的 `cordis.patch.yml` 里把 watcher 指到插件目录，桌面应用对应的是
+`$DSH_HOME/profiles/desktop/cordis.patch.yml`：
 
 ```yaml
 - id: hmr

@@ -340,12 +340,29 @@ test('resolveEnvironment reports a usable tree when this machine has one', {
 })
 
 test('resolveEnvironment refuses to invent a tree when none exists', async () => {
+  // `conventional: false` keeps this deterministic: CI runners ship vcpkg at
+  // /usr/local/share/vcpkg, so the fallback list would otherwise find a tree.
   const environment = await resolveEnvironment({
     projectDir: FIXTURE,
     env: { VCPKG_ROOT: '/nonexistent/vcpkg-tree' },
+    conventional: false,
   })
   assert.equal(environment.root, null)
-  assert.ok(environment.warnings.some((warning) => warning.includes('/nonexistent/vcpkg-tree')))
+  assert.equal(environment.envVcpkgRoot, '/nonexistent/vcpkg-tree')
+  assert.ok(
+    environment.warnings.some((warning) => warning.includes('/nonexistent/vcpkg-tree')),
+    'a broken VCPKG_ROOT must be reported, because the C++ build reads it directly',
+  )
+})
+
+test('candidateRoots stops at what the caller declared when conventions are off', () => {
+  const candidates = candidateRoots({
+    projectDir: FIXTURE,
+    env: { VCPKG_ROOT: '/nonexistent/vcpkg-tree' },
+    conventional: false,
+  })
+  assert.deepEqual(candidates.map((candidate) => candidate.path), ['/nonexistent/vcpkg-tree'])
+  assert.equal(inspectRoot(candidates[0]).usable, false)
 })
 
 test('selectInstallRoot picks the fixture install root', async () => {

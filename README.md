@@ -25,15 +25,34 @@ resolved proxy first, so that failure does not happen.
 
 ## Install
 
-The plugin is a standard DSH bundle. Install it from the Harness GUI, through the `plugin_manager` tool, or
-from a shell:
+Open **Plugins** in the DeepSeek Harness app, choose **Add plugin**, and enter the absolute path to this
+directory. The `plugin_manager` tool does the same thing:
 
-```bash
-dsh plugin --profile <profile> add /absolute/path/to/dsh-vcpkg
+```
+plugin_manager   action "install_bundle"   target "/absolute/path/to/dsh-vcpkg"
 ```
 
-DSH records the dependency in the profile's `package.json` and appends `dsh-vcpkg` to
+Either way, DSH records the dependency in the active profile's `package.json` and appends `dsh-vcpkg` to
 `dsh.profile.bundles`, which mounts `cordis.patch.yml` as an additional layer.
+
+### Which profile
+
+The desktop app owns exactly one profile and does not expose it to the command line:
+
+```
+$ dsh --profile desktop --dump-config
+error: profile "desktop" is managed exclusively by the Electron application
+```
+
+So the app's own UI, or the `plugin_manager` tool, is how a plugin gets into it. The CLI manages the
+template-backed profiles instead, which are what headless and automation runs use:
+
+```bash
+dsh plugin --profile web add /absolute/path/to/dsh-vcpkg
+```
+
+The shipped templates are `web`, `headless`, `sdk`, `sdk-minimal` and `acp`. Any other name is initialized
+with `@deepseek-ai/dsh-base` alone.
 
 The plugin declares `@deepseek-ai/dsh-tools` as a peer dependency in the range `>=0.2.0-rc.2 <1.0.0`. A DSH
 build outside that range silently skips the whole bundle, so widen the range deliberately.
@@ -181,7 +200,8 @@ what happens when the plugin is not installed into a profile.
 
 DSH's HMR watcher starts with an empty root list, so edits to the plugin source do not reach a running
 Harness by default. To make them apply without a restart, point the watcher at the plugin directory in the
-profile's `cordis.patch.yml`:
+profile's own `cordis.patch.yml`, which for the desktop app is
+`$DSH_HOME/profiles/desktop/cordis.patch.yml`:
 
 ```yaml
 - id: hmr
