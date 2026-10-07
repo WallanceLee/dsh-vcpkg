@@ -1,0 +1,25 @@
+{
+  "name": "fixture-project",
+  "version-string": "1.0.0",
+  "description": "Fixture manifest for the dsh-vcpkg test suite.",
+  "builtin-baseline": "9f8f0c7bfa1a8f393cd4da3f49c1163d7daa774f",
+  "dependencies": [
+    "fmt",
+    {
+      "name": "gdal",
+      "default-features": false,
+      "features": [
+        "iconv"
+      ]
+    },
+    "not-installed-port"
+  ],
+  "features": {
+    "extras": {
+      "description": "Fixture feature.",
+      "dependencies": [
+        "zlib"
+      ]
+    }
+  }
+}

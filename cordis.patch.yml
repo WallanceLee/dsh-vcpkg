@@ -1,0 +1,16 @@
+# dsh-vcpkg bundle layer.
+#
+# Declared through `dsh.bundle.patch` in package.json, so listing `dsh-vcpkg`
+# in a profile's `dsh.profile.bundles` mounts this row automatically.
+#
+# Every knob has a working default, so this insert carries no `config`. To pin
+# a vcpkg tree or a proxy for one deployment, override it from the profile's own
+# cordis.patch.yml (a targeted row REPLACES config wholesale — it does not merge):
+#
+#   - id: dsh-vcpkg
+#     config:
+#       vcpkgRoot: /Users/you/Developer/Cpp/vcpkg
+#       proxy: http://127.0.0.1:7890
+- insert:
+    - id: dsh-vcpkg
+      name: dsh-vcpkg
